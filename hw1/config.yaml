@@ -1,0 +1,12 @@
+train_data_path: ./data/train
+test_data_path: ./data/test
+
+log_path: ./logs
+
+crop_height: 90
+crop_width: 90
+
+num_classes: 39
+batch_size: 4
+num_epochs: 10
+learning_rate: !!float 1e-4
