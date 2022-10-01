@@ -10,12 +10,12 @@ from src.utilis import test, train
 
 
 def main(config):
-    train_dataset = get_dataset(config['train_data_path'], 'train',
-                                config['batch_size'])
+    dataset = get_dataset(config['train_data_path'], 'train',
+                          config['batch_size'])
 
-    train_size = int(train_dataset.cardinality().numpy() * 0.9)
-    train_dataset = train_dataset.take(train_size)
-    test_dataset = train_dataset.skip(train_size)
+    train_size = int(dataset.cardinality().numpy() * 0.9)
+    train_dataset = dataset.take(train_size)
+    test_dataset = dataset.skip(train_size)
 
     model = create_model(
         input_shape=(None, config['crop_height'], config['crop_width'], 3),
