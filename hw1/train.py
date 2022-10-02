@@ -25,6 +25,9 @@ def main(config):
     )
     model.summary()
 
+    with open(cfg['model_struct_path'], 'w', encoding='utf-8') as file:
+        json.dump(json.loads(model.to_json()), file, indent=4)
+
     optimizer = tf.keras.optimizers.Adam(
         learning_rate=config['train']['learning_rate'])
 
@@ -57,5 +60,6 @@ if __name__ == '__main__':
 
     cfg['train_log_dir'] = os.path.join(cfg['log_dir'], 'tensorboard', 'train')
     cfg['test_log_dir'] = os.path.join(cfg['log_dir'], 'tensorboard', 'test')
+    cfg['model_struct_path'] = os.path.join(cfg['log_dir'], 'model.json')
 
     main(cfg)
