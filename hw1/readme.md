@@ -24,9 +24,11 @@
 ## Environment
 
 ```bash
-conda create --name ccbda-hw1 python=3.10
+conda create --name ccbda-hw1 python=3.10 --yes
 conda activate ccbda-hw1
-conda install -c conda-forge ffmpeg
+conda install -c conda-forge ffmpeg --yes
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/
 
 pip3 install -r requirements.txt
 ```
