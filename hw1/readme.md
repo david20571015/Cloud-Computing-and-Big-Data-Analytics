@@ -23,12 +23,29 @@
 
 ## Environment
 
-```bash
-conda create --name ccbda-hw1 python=3.10
+### Create Environment
+
+```sh
+conda create --name ccbda-hw1 python=3.10 --yes
 conda activate ccbda-hw1
-conda install -c conda-forge ffmpeg
+conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1.0 --yes
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/
 
 pip3 install -r requirements.txt
+```
+
+### Activate Environment
+
+```sh
+conda activate ccbda-hw1
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/
+```
+
+or
+
+```sh
+sh activate.sh
 ```
 
 ## Train
