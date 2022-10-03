@@ -5,18 +5,14 @@ import os
 import tensorflow as tf
 import yaml
 
-from src.dataset import get_dataset
+from src.dataset import get_train_valid_dataset
 from src.model import create_model
 from src.utilis import test, train
 
 
 def main(config):
-    dataset = get_dataset(config['dataset']['train_path'], 'train',
-                          config['train']['batch_size'])
-
-    train_size = int(dataset.cardinality().numpy() * 0.9)
-    train_dataset = dataset.take(train_size)
-    test_dataset = dataset.skip(train_size)
+    train_dataset, valid_dataset = get_train_valid_dataset(
+        config['dataset']['train_path'], config['train']['batch_size'])
 
     model = create_model(
         input_shape=(None, config['preprocess']['crop_height'],
@@ -45,7 +41,7 @@ def main(config):
         print(f'Epoch {epoch}/{config["train"]["num_epochs"]}:')
 
         train(model, optimizer, train_dataset, train_writer, epoch)
-        test(model, test_dataset, test_writer, epoch)
+        test(model, valid_dataset, test_writer, epoch)
         manager.save()
 
 

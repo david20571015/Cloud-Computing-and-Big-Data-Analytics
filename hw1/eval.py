@@ -4,7 +4,7 @@ import os
 import tensorflow as tf
 import yaml
 
-from src.dataset import get_dataset
+from src.dataset import get_test_dataset
 
 
 def infer(model, data):
@@ -13,8 +13,8 @@ def infer(model, data):
 
 
 def main(config):
-    dataset = get_dataset(config['dataset']['test_path'], 'test',
-                          config['infer']['batch_size'])
+    dataset = get_test_dataset(config['dataset']['test_path'],
+                               config['infer']['batch_size'])
 
     with open(config['model_struct_path'], 'r', encoding='utf-8') as file:
         model = tf.keras.models.model_from_json(json.load(file))

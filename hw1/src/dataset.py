@@ -1,7 +1,9 @@
 import os
+from typing import Any
 
 import tensorflow as tf
 import tensorflow_io as tfio
+from sklearn.model_selection import train_test_split
 
 
 @tf.function
@@ -23,47 +25,70 @@ def _decode_video(video_path: str) -> tf.Tensor:
     return video
 
 
-def get_dataset(
-    path: str,
-    ds_type: str,
+def _get_dataset(
+    video_data_list: list[str],
+    remain_data_list: list[Any],
     batch_size: int = 32,
+    shuffle=True,
 ) -> tf.data.Dataset:
+    dataset = tf.data.Dataset.zip((
+        tf.data.Dataset.from_tensor_slices(video_data_list),
+        tf.data.Dataset.from_tensor_slices(remain_data_list),
+    ))
+
+    if shuffle:
+        dataset = dataset.shuffle(len(video_data_list))
+
+    dataset = dataset.map(
+        lambda x, y: (_decode_video(x), y),
+        num_parallel_calls=tf.data.AUTOTUNE,
+    )
+    dataset = dataset.apply(
+        tf.data.experimental.dense_to_ragged_batch(batch_size))
+    dataset = dataset.prefetch(tf.data.AUTOTUNE)
+
+    return dataset
+
+
+def get_train_valid_dataset(
+    path: str,
+    batch_size: int = 32,
+    train_ratio=0.9,
+) -> tuple[tf.data.Dataset, tf.data.Dataset]:
 
     if not os.path.isdir(path):
         raise ValueError(f'Invalid path: {path}')
 
-    if ds_type not in ['train', 'test']:
-        raise ValueError('ds_type must be "train" or "test"')
+    file_list = tf.io.gfile.glob(os.path.join(path, '*', '*.mp4'))
+    train_file_list, valid_file_list = train_test_split(file_list,
+                                                        train_size=train_ratio)
+    train_class_list, valid_class_list = [
+        int(os.path.basename(os.path.dirname(f))) for f in train_file_list
+    ], [int(os.path.basename(os.path.dirname(f))) for f in valid_file_list]
 
-    if ds_type == 'train':
-        file_list = tf.io.gfile.glob(os.path.join(path, '*', '*.mp4'))
-        class_list = [
-            int(os.path.basename(os.path.dirname(f))) for f in file_list
-        ]
-        print(f'Found {len(file_list)} training videos.')
+    print(f'Found {len(train_file_list)} training videos '
+          f'and {len(valid_file_list)} validation videos.')
 
-        dataset = tf.data.Dataset.zip((
-            tf.data.Dataset.from_tensor_slices(file_list),
-            tf.data.Dataset.from_tensor_slices(class_list),
-        ))
-        dataset = dataset.cache().shuffle(len(file_list))
-        dataset = dataset.map(lambda x, y: (_decode_video(x), y),
-                              num_parallel_calls=tf.data.AUTOTUNE)
-        dataset = dataset.apply(
-            tf.data.experimental.dense_to_ragged_batch(batch_size))
+    train_dataset = _get_dataset(train_file_list, train_class_list, batch_size)
+    valid_dataset = _get_dataset(
+        valid_file_list,
+        valid_class_list,
+        batch_size,
+        shuffle=False,
+    )
 
-    else:  # test
-        file_list = tf.io.gfile.glob(os.path.join(path, '*.mp4'))
-        filename_list = [os.path.basename(f) for f in file_list]
-        print(f'Found {len(file_list)} testing videos.')
+    return train_dataset, valid_dataset
 
-        dataset = tf.data.Dataset.zip((
-            tf.data.Dataset.from_tensor_slices(file_list),
-            tf.data.Dataset.from_tensor_slices(filename_list),
-        ))
-        dataset = dataset.map(lambda x, y: (_decode_video(x), y),
-                              num_parallel_calls=tf.data.AUTOTUNE)
-        dataset = dataset.apply(
-            tf.data.experimental.dense_to_ragged_batch(batch_size))
 
-    return dataset.prefetch(tf.data.AUTOTUNE)
+def get_test_dataset(path: str, batch_size: int = 32) -> tf.data.Dataset:
+
+    if not os.path.isdir(path):
+        raise ValueError(f'Invalid path: {path}')
+
+    file_list = tf.io.gfile.glob(os.path.join(path, '*.mp4'))
+    filename_list = [os.path.basename(f) for f in file_list]
+    print(f'Found {len(file_list)} testing videos.')
+
+    dataset = _get_dataset(file_list, filename_list, batch_size, shuffle=False)
+
+    return dataset
