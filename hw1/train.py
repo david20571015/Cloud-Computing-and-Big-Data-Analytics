@@ -36,11 +36,17 @@ def main(config):
     test_writer = tf.summary.create_file_writer(  # type: ignore
         config['test_log_dir'])
 
+    ckpt = tf.train.Checkpoint(net=model, optimizer=optimizer)
+    manager = tf.train.CheckpointManager(ckpt,
+                                         config['ckpt_dir'],
+                                         max_to_keep=5)
+
     for epoch in range(1, config['train']['num_epochs'] + 1):
         print(f'Epoch {epoch}/{config["train"]["num_epochs"]}:')
 
         train(model, optimizer, train_dataset, train_writer, epoch)
         test(model, test_dataset, test_writer, epoch)
+        manager.save()
 
 
 if __name__ == '__main__':
@@ -61,5 +67,6 @@ if __name__ == '__main__':
     cfg['train_log_dir'] = os.path.join(cfg['log_dir'], 'tensorboard', 'train')
     cfg['test_log_dir'] = os.path.join(cfg['log_dir'], 'tensorboard', 'test')
     cfg['model_struct_path'] = os.path.join(cfg['log_dir'], 'model.json')
+    cfg['ckpt_dir'] = os.path.join(cfg['log_dir'], 'weights')
 
     main(cfg)
