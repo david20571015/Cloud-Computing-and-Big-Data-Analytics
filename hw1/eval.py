@@ -20,7 +20,11 @@ def main(config):
         config['preprocess']['crop_width'],
     )
 
-    with open(config['model_struct_path'], 'r', encoding='utf-8') as file:
+    with open(
+            os.path.join(config['infer']['dir'], 'model.json'),
+            mode='r',
+            encoding='utf-8',
+    ) as file:
         model = tf.keras.models.model_from_json(json.load(file))
     model.summary()  # type: ignore
 
@@ -46,7 +50,5 @@ def main(config):
 if __name__ == '__main__':
     with open('config.yaml', encoding='utf-8') as f:
         cfg = yaml.load(f, Loader=yaml.FullLoader)
-
-    cfg['model_struct_path'] = os.path.join(cfg['infer']['dir'], 'model.json')
 
     main(cfg)

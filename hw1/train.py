@@ -26,21 +26,27 @@ def main(config):
     )
     model.summary()
 
-    with open(cfg['model_struct_path'], 'w', encoding='utf-8') as file:
+    with open(
+            os.path.join(config['log_dir'], 'model.json'),
+            mode='w',
+            encoding='utf-8',
+    ) as file:
         json.dump(model.to_json(), file)
 
     optimizer = tf.keras.optimizers.Adam(
         learning_rate=config['train']['learning_rate'])
 
     train_writer = tf.summary.create_file_writer(  # type: ignore
-        config['train_log_dir'])
+        os.path.join(config['log_dir'], 'tensorboard', 'train'))
     test_writer = tf.summary.create_file_writer(  # type: ignore
-        config['test_log_dir'])
+        os.path.join(config['log_dir'], 'tensorboard', 'test'))
 
     ckpt = tf.train.Checkpoint(net=model, optimizer=optimizer)
-    manager = tf.train.CheckpointManager(ckpt,
-                                         config['ckpt_dir'],
-                                         max_to_keep=5)
+    manager = tf.train.CheckpointManager(
+        ckpt,
+        os.path.join(config['log_dir'], 'weights'),
+        max_to_keep=5,
+    )
 
     for epoch in range(1, config['train']['num_epochs'] + 1):
         print(f'Epoch {epoch}/{config["train"]["num_epochs"]}:')
@@ -64,10 +70,5 @@ if __name__ == '__main__':
               mode='w',
               encoding='utf-8') as f:
         yaml.dump(cfg, f, default_flow_style=False)
-
-    cfg['train_log_dir'] = os.path.join(cfg['log_dir'], 'tensorboard', 'train')
-    cfg['test_log_dir'] = os.path.join(cfg['log_dir'], 'tensorboard', 'test')
-    cfg['model_struct_path'] = os.path.join(cfg['log_dir'], 'model.json')
-    cfg['ckpt_dir'] = os.path.join(cfg['log_dir'], 'weights')
 
     main(cfg)
