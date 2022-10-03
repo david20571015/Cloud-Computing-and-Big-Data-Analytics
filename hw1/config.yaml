@@ -11,6 +11,7 @@ model:
 
 train:
   log_dir: ./logs
+  train_ratio: 0.9
   batch_size: 4
   num_epochs: 40
   learning_rate: !!float 1e-4
