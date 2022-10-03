@@ -26,7 +26,7 @@ def main(config):
     model.summary()
 
     with open(cfg['model_struct_path'], 'w', encoding='utf-8') as file:
-        json.dump(json.loads(model.to_json()), file, indent=4)
+        json.dump(model.to_json(), file)
 
     optimizer = tf.keras.optimizers.Adam(
         learning_rate=config['train']['learning_rate'])
