@@ -29,9 +29,8 @@ def main(config):
     model.summary()  # type: ignore
 
     ckpt = tf.train.Checkpoint(net=model)
-    ckpt.restore(
-        tf.train.latest_checkpoint(
-            os.path.join(config['infer']['dir'], 'weights'))).expect_partial()
+    ckpt_dir = os.path.join(config['infer']['dir'], 'weights')
+    ckpt.restore(tf.train.latest_checkpoint(ckpt_dir)).expect_partial()
 
     with open('prediction.csv', 'w', encoding='utf-8') as file:
         print('name,label', file=file)
