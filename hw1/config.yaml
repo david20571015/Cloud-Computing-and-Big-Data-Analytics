@@ -2,8 +2,6 @@ dataset:
   train_path: ./data/train
   test_path: ./data/test
 
-log_dir: ./logs
-
 preprocess:
   crop_height: 90
   crop_width: 90
@@ -12,6 +10,11 @@ model:
   num_classes: 39
 
 train:
+  log_dir: ./logs
   batch_size: 4
-  num_epochs: 20
+  num_epochs: 40
   learning_rate: !!float 1e-4
+
+infer:
+  batch_size: 4
+  dir: ./logs/

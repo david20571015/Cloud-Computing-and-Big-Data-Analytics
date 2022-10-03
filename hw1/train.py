@@ -52,7 +52,7 @@ if __name__ == '__main__':
         cfg = yaml.load(f, Loader=yaml.FullLoader)
 
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    cfg['log_dir'] = os.path.join(cfg['log_dir'], current_time)
+    cfg['log_dir'] = os.path.join(cfg['train']['log_dir'], current_time)
     os.makedirs(cfg['log_dir'], exist_ok=True)
 
     with open(os.path.join(cfg['log_dir'], 'config.yaml'),
