@@ -12,7 +12,12 @@ from src.utilis import test, train
 
 def main(config):
     train_dataset, valid_dataset = get_train_valid_dataset(
-        config['dataset']['train_path'], config['train']['batch_size'])
+        config['dataset']['train_path'],
+        config['train']['batch_size'],
+        0.9,
+        config['preprocess']['crop_height'],
+        config['preprocess']['crop_weight'],
+    )
 
     model = create_model(
         input_shape=(None, config['preprocess']['crop_height'],

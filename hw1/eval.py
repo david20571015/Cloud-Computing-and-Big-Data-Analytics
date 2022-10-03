@@ -13,8 +13,12 @@ def infer(model, data):
 
 
 def main(config):
-    dataset = get_test_dataset(config['dataset']['test_path'],
-                               config['infer']['batch_size'])
+    dataset = get_test_dataset(
+        config['dataset']['test_path'],
+        config['infer']['batch_size'],
+        config['preprocess']['crop_height'],
+        config['preprocess']['crop_width'],
+    )
 
     with open(config['model_struct_path'], 'r', encoding='utf-8') as file:
         model = tf.keras.models.model_from_json(json.load(file))
