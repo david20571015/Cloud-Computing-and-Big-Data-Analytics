@@ -16,7 +16,7 @@ def main(config):
         config['train']['batch_size'],
         0.9,
         config['preprocess']['crop_height'],
-        config['preprocess']['crop_weight'],
+        config['preprocess']['crop_width'],
     )
 
     model = create_model(
