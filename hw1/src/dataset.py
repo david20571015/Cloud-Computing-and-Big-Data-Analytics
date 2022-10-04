@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 def _decode_video(
     video_path: str,
     height: int = 90,
-    weight: int = 90,
+    width: int = 90,
     sample_rate: int = 1,
 ) -> tf.Tensor:
     """Decode video to tensor.
@@ -24,7 +24,7 @@ def _decode_video(
     video = tf.io.read_file(video_path)
     video = tfio.experimental.ffmpeg.decode_video(video)
     video = video[::sample_rate, ...]
-    video = tf.image.resize_with_crop_or_pad(video, height, weight)
+    video = tf.image.resize_with_crop_or_pad(video, height, width)
 
     # [0, 255] -> [-1.0, 1.0]
     video = tf.cast(video, tf.float32) / 128.0 - 1.0  # type: ignore
@@ -37,7 +37,7 @@ def _get_dataset(
     batch_size: int = 32,
     shuffle=True,
     height: int = 90,
-    weight: int = 90,
+    width: int = 90,
     sample_rate: int = 1,
 ) -> tf.data.Dataset:
     dataset = tf.data.Dataset.zip((
@@ -49,7 +49,7 @@ def _get_dataset(
         dataset = dataset.shuffle(len(video_data_list))
 
     dataset = dataset.map(
-        lambda x, y: (_decode_video(x, height, weight, sample_rate), y),
+        lambda x, y: (_decode_video(x, height, width, sample_rate), y),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
     dataset = dataset.apply(
@@ -64,7 +64,7 @@ def get_train_valid_dataset(
     batch_size: int = 32,
     train_ratio=0.9,
     height: int = 90,
-    weight: int = 90,
+    width: int = 90,
     sample_rate: int = 1,
 ) -> tuple[tf.data.Dataset, tf.data.Dataset]:
 
@@ -86,7 +86,7 @@ def get_train_valid_dataset(
         train_class_list,
         batch_size,
         height=height,
-        weight=weight,
+        width=width,
         sample_rate=sample_rate,
     )
     valid_dataset = _get_dataset(
@@ -95,7 +95,7 @@ def get_train_valid_dataset(
         batch_size,
         shuffle=False,
         height=height,
-        weight=weight,
+        width=width,
         sample_rate=sample_rate,
     )
 
@@ -106,7 +106,7 @@ def get_test_dataset(
     path: str,
     batch_size: int = 32,
     height: int = 90,
-    weight: int = 90,
+    width: int = 90,
     sample_rate: int = 1,
 ) -> tf.data.Dataset:
 
@@ -123,7 +123,7 @@ def get_test_dataset(
         batch_size,
         shuffle=False,
         height=height,
-        weight=weight,
+        width=width,
         sample_rate=sample_rate,
     )
 
