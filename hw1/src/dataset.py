@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 @tf.function
 def _decode_video(
     video_path: str,
+    timesteps: int = 100,
     height: int = 90,
     width: int = 90,
     sample_rate: int = 1,
@@ -26,8 +27,19 @@ def _decode_video(
     video = video[::sample_rate, ...]
     video = tf.image.resize_with_crop_or_pad(video, height, width)
 
-    # [0, 255] -> [-1.0, 1.0]
-    video = tf.cast(video, tf.float32) / 128.0 - 1.0  # type: ignore
+    video_timesetps = tf.shape(video)[0]
+    if video_timesetps > timesteps:
+        video = video[:timesteps, ...]  # type: ignore
+    else:
+        video = tf.pad(
+            video,
+            [[0, timesteps - video_timesetps], [0, 0], [0, 0], [0, 0]],
+            'CONSTANT',
+            -1,
+        )
+
+    # [0, 255] -> [0.0, 1.0]
+    video = tf.cast(video, tf.float32) / 255.0  # type: ignore
     return video
 
 
@@ -36,6 +48,7 @@ def _get_dataset(
     remain_data_list: list[Any],
     batch_size: int = 32,
     shuffle=True,
+    timesteps: int = 100,
     height: int = 90,
     width: int = 90,
     sample_rate: int = 1,
@@ -49,11 +62,11 @@ def _get_dataset(
         dataset = dataset.shuffle(len(video_data_list))
 
     dataset = dataset.map(
-        lambda x, y: (_decode_video(x, height, width, sample_rate), y),
+        lambda x, y:
+        (_decode_video(x, timesteps, height, width, sample_rate), y),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
-    dataset = dataset.apply(
-        tf.data.experimental.dense_to_ragged_batch(batch_size))
+    dataset = dataset.batch(batch_size)
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
     return dataset
@@ -63,6 +76,7 @@ def get_train_valid_dataset(
     path: str,
     batch_size: int = 32,
     train_ratio=0.9,
+    timesteps: int = 100,
     height: int = 90,
     width: int = 90,
     sample_rate: int = 1,
@@ -85,6 +99,7 @@ def get_train_valid_dataset(
         train_file_list,
         train_class_list,
         batch_size,
+        timesteps=timesteps,
         height=height,
         width=width,
         sample_rate=sample_rate,
@@ -94,6 +109,7 @@ def get_train_valid_dataset(
         valid_class_list,
         batch_size,
         shuffle=False,
+        timesteps=timesteps,
         height=height,
         width=width,
         sample_rate=sample_rate,
@@ -105,6 +121,7 @@ def get_train_valid_dataset(
 def get_test_dataset(
     path: str,
     batch_size: int = 32,
+    timesteps: int = 100,
     height: int = 90,
     width: int = 90,
     sample_rate: int = 1,
@@ -122,6 +139,7 @@ def get_test_dataset(
         filename_list,
         batch_size,
         shuffle=False,
+        timesteps=timesteps,
         height=height,
         width=width,
         sample_rate=sample_rate,

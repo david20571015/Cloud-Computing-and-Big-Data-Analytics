@@ -3,6 +3,7 @@ dataset:
   test_path: ./data/test
 
 preprocess:
+  timesteps: 50
   crop_height: 90
   crop_width: 90
   sample_rate: 2

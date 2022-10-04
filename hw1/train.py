@@ -15,6 +15,7 @@ def main(config):
         config['dataset']['train_path'],
         config['train']['batch_size'],
         config['train']['train_ratio'],
+        config['preprocess']['timesteps'],
         config['preprocess']['crop_height'],
         config['preprocess']['crop_width'],
         config['preprocess']['sample_rate'],
