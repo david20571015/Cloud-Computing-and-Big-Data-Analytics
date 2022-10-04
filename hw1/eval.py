@@ -18,6 +18,7 @@ def main(config):
         config['infer']['batch_size'],
         config['preprocess']['crop_height'],
         config['preprocess']['crop_width'],
+        config['preprocess']['sample_rate'],
     )
 
     with open(

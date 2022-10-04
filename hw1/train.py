@@ -17,6 +17,7 @@ def main(config):
         config['train']['train_ratio'],
         config['preprocess']['crop_height'],
         config['preprocess']['crop_width'],
+        config['preprocess']['sample_rate'],
     )
 
     model = create_model(

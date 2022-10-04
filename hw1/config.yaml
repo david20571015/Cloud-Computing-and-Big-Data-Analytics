@@ -5,6 +5,7 @@ dataset:
 preprocess:
   crop_height: 90
   crop_width: 90
+  sample_rate: 2
 
 model:
   num_classes: 39
