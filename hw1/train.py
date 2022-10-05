@@ -1,3 +1,4 @@
+import argparse
 import datetime
 import json
 import os
@@ -6,11 +7,31 @@ import tensorflow as tf
 import yaml
 
 from src.dataset import get_train_valid_dataset
-from src.model import create_model
+from src.resnet import create_lstm_resnet
 from src.utilis import test, train
 
 
-def main(config):
+def resume_model_and_opt(config, option):
+    if not os.path.isdir(option.resume_training):
+        raise ValueError(f'Invalid path: {config["train"]["dir"]}.')
+
+    with open(
+            os.path.join(option.resume_training, 'model.json'),
+            mode='r',
+            encoding='utf-8',
+    ) as file:
+        model = tf.keras.models.model_from_json(json.load(file))
+
+    optimizer = tf.keras.optimizers.Adam()
+
+    ckpt = tf.train.Checkpoint(net=model, optimizer=optimizer)
+    ckpd_dir = os.path.join(option.resume_training, 'weights')
+    ckpt.restore(tf.train.latest_checkpoint(ckpd_dir)).assert_consumed()
+
+    return model, optimizer
+
+
+def main(config, option):
     train_dataset, valid_dataset = get_train_valid_dataset(
         config['dataset']['train_path'],
         config['train']['batch_size'],
@@ -21,22 +42,27 @@ def main(config):
         config['preprocess']['sample_rate'],
     )
 
-    model = create_model(
-        input_shape=(None, config['preprocess']['crop_height'],
-                     config['preprocess']['crop_width'], 3),
-        num_classes=config['model']['num_classes'],
-    )
-    model.summary()
+    if option.resume_training:
+        model, optimizer = resume_model_and_opt(config, option)
+    else:
+        model = create_lstm_resnet(
+            input_shape=(config['preprocess']['timesteps'],
+                         config['preprocess']['crop_height'],
+                         config['preprocess']['crop_width'], 3),
+            num_classes=config['model']['num_classes'],
+            name='resnet50',
+        )
+        with open(
+                os.path.join(config['log_dir'], 'model.json'),
+                mode='w',
+                encoding='utf-8',
+        ) as file:
+            json.dump(model.to_json(), file)
 
-    with open(
-            os.path.join(config['log_dir'], 'model.json'),
-            mode='w',
-            encoding='utf-8',
-    ) as file:
-        json.dump(model.to_json(), file)
+        optimizer = tf.keras.optimizers.Adam(
+            learning_rate=config['train']['learning_rate'])
 
-    optimizer = tf.keras.optimizers.Adam(
-        learning_rate=config['train']['learning_rate'])
+    model.summary()  # type: ignore
 
     train_writer = tf.summary.create_file_writer(  # type: ignore
         os.path.join(config['log_dir'], 'tensorboard', 'train'))
@@ -73,4 +99,14 @@ if __name__ == '__main__':
               encoding='utf-8') as f:
         yaml.dump(cfg, f, default_flow_style=False)
 
-    main(cfg)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--resume-training',
+        '-r',
+        default='',
+        type=str,
+        help='Path to the log directory of the training to resume.',
+    )
+    args = parser.parse_args()
+
+    main(cfg, args)

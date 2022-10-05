@@ -1,5 +1,5 @@
 import os
-from typing import Any
+from typing import Any, Optional
 
 import tensorflow as tf
 import tensorflow_io as tfio
