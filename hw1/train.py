@@ -7,7 +7,7 @@ import tensorflow as tf
 import yaml
 
 from src.dataset import get_train_valid_dataset
-from src.resnet import create_lstm_resnet
+from src.model import create_model
 from src.utilis import test, train
 
 
@@ -45,12 +45,11 @@ def main(config, option):
     if option.resume_training:
         model, optimizer = resume_model_and_opt(config, option)
     else:
-        model = create_lstm_resnet(
+        model = create_model(
             input_shape=(config['preprocess']['timesteps'],
                          config['preprocess']['crop_height'],
                          config['preprocess']['crop_width'], 3),
             num_classes=config['model']['num_classes'],
-            name='resnet50',
         )
         with open(
                 os.path.join(config['log_dir'], 'model.json'),
