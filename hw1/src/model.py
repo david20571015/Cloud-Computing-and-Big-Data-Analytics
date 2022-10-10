@@ -39,7 +39,11 @@ def attention_block(inputs, timesteps):
 
 def create_model(input_shape: tuple, num_classes: int):
     inputs = tf.keras.Input(input_shape)
-    outputs = vgg19_backend()(inputs)
+
+    outputs = tf.keras.layers.TimeDistributed(
+        tf.keras.layers.RandomFlip('horizontal'))(inputs)
+
+    outputs = vgg19_backend()(outputs)
     outputs = tf.keras.layers.TimeDistributed(
         tf.keras.layers.Flatten())(outputs)
     outputs = tf.keras.layers.Bidirectional(

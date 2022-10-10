@@ -13,6 +13,7 @@ def _decode_video(
     height: int = 90,
     width: int = 90,
     sample_rate: int = 1,
+    data_augment: bool = False,
 ) -> tf.Tensor:
     """Decode video to tensor.
 
@@ -26,6 +27,11 @@ def _decode_video(
     video = tfio.experimental.ffmpeg.decode_video(video)
     video = video[::sample_rate, ...]
     video = tf.image.resize_with_pad(video, height, width)
+
+    if data_augment:
+        video = tf.image.random_hue(video, 0.2)
+        video = tf.image.random_saturation(video, 0.8, 1.2)
+        video = tf.image.random_brightness(video, 0.2)
 
     if timesteps is not None:
         video_timesetps = tf.shape(video)[0]
@@ -53,6 +59,7 @@ def _get_dataset(
     height: int = 90,
     width: int = 90,
     sample_rate: int = 1,
+    data_augment: bool = False,
 ) -> tf.data.Dataset:
     dataset = tf.data.Dataset.zip((
         tf.data.Dataset.from_tensor_slices(video_data_list),
@@ -64,7 +71,7 @@ def _get_dataset(
 
     dataset = dataset.map(
         lambda x, y:
-        (_decode_video(x, timesteps, height, width, sample_rate), y),
+        (_decode_video(x, timesteps, height, width, sample_rate, data_augment), y),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
     if timesteps is None:
@@ -109,6 +116,7 @@ def get_train_valid_dataset(
         height=height,
         width=width,
         sample_rate=sample_rate,
+        data_augment=True,
     )
     valid_dataset = _get_dataset(
         valid_file_list,
