@@ -25,7 +25,7 @@ def _decode_video(
     video = tf.io.read_file(video_path)
     video = tfio.experimental.ffmpeg.decode_video(video)
     video = video[::sample_rate, ...]
-    video = tf.image.resize_with_crop_or_pad(video, height, width)
+    video = tf.image.resize_with_pad(video, height, width)
 
     if timesteps is not None:
         video_timesetps = tf.shape(video)[0]
