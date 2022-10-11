@@ -26,6 +26,8 @@
 ### Create Environment
 
 ```sh
+sudo apt install ffmpeg
+
 conda create --name ccbda-hw1 python=3.10 --yes
 conda activate ccbda-hw1
 conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1.0 --yes
