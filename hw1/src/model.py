@@ -14,9 +14,8 @@ def conv_block(filters: int, repeat: int):
         layers.append(
             tf.keras.layers.TimeDistributed(
                 tf.keras.layers.BatchNormalization()))
-        layers.append(
-            tf.keras.layers.TimeDistributed(tf.keras.layers.Dropout(0.2)))
     layers.append(tf.keras.layers.TimeDistributed(tf.keras.layers.MaxPool2D()))
+    layers.append(tf.keras.layers.TimeDistributed(tf.keras.layers.Dropout(0.2)))
     return tf.keras.Sequential(layers)
 
 
@@ -48,13 +47,13 @@ def create_model(input_shape: tuple, num_classes: int):
         tf.keras.layers.Flatten())(outputs)
     outputs = tf.keras.layers.Bidirectional(
         tf.keras.layers.LSTM(
-            128,
+            256,
             return_sequences=True,
             kernel_regularizer=tf.keras.regularizers.l2(0.0001)))(outputs)
     outputs = attention_block(outputs, input_shape[0])
     outputs = tf.keras.layers.Flatten()(outputs)
     outputs = tf.keras.layers.Dense(
-        256,
+        512,
         activation='relu',
         kernel_regularizer=tf.keras.regularizers.l2(0.0001))(outputs)
     outputs = tf.keras.layers.Dropout(0.5)(outputs)
