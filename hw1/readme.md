@@ -58,6 +58,8 @@ python3 train.py
 
 ## Make Prediction
 
+Change `infer.dir` in `config.yaml` and run
+
 ```sh
 python3 eval.py
 ```

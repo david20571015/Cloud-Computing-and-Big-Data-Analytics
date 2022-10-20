@@ -3,9 +3,9 @@ dataset:
   test_path: ./data/test
 
 preprocess:
-  timesteps: 50
-  crop_height: 90
-  crop_width: 90
+  timesteps: 45
+  crop_height: 112
+  crop_width: 112
   sample_rate: 2
 
 model:
@@ -14,10 +14,10 @@ model:
 train:
   log_dir: ./logs
   train_ratio: 0.9
-  batch_size: 4
+  batch_size: 16
   num_epochs: 40
-  learning_rate: !!float 1e-4
+  learning_rate: !!float 3e-5
 
 infer:
-  batch_size: 4
-  dir: ./logs/
+  batch_size: 8
+  dir: ./logs/20221020-142656
