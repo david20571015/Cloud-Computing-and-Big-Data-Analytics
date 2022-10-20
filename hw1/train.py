@@ -86,18 +86,6 @@ def main(config, option):
 if __name__ == '__main__':
     print('CUDA: ', tf.config.list_physical_devices('GPU'))
 
-    with open('config.yaml', encoding='utf-8') as f:
-        cfg = yaml.load(f, Loader=yaml.FullLoader)
-
-    current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    cfg['log_dir'] = os.path.join(cfg['train']['log_dir'], current_time)
-    os.makedirs(cfg['log_dir'], exist_ok=True)
-
-    with open(os.path.join(cfg['log_dir'], 'config.yaml'),
-              mode='w',
-              encoding='utf-8') as f:
-        yaml.dump(cfg, f, default_flow_style=False)
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--resume-training',
@@ -107,5 +95,23 @@ if __name__ == '__main__':
         help='Path to the log directory of the training to resume.',
     )
     args = parser.parse_args()
+
+    if args.resume_training:
+        with open(os.path.join(args.resume_training, 'config.yaml'),
+                  encoding='utf-8') as f:
+            cfg = yaml.load(f, Loader=yaml.FullLoader)
+        cfg['log_dir'] = args.resume_training
+    else:
+        with open('config.yaml', encoding='utf-8') as f:
+            cfg = yaml.load(f, Loader=yaml.FullLoader)
+
+        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        cfg['log_dir'] = os.path.join(cfg['train']['log_dir'], current_time)
+        os.makedirs(cfg['log_dir'], exist_ok=True)
+
+        with open(os.path.join(cfg['log_dir'], 'config.yaml'),
+                  mode='w',
+                  encoding='utf-8') as f:
+            yaml.dump(cfg, f, default_flow_style=False)
 
     main(cfg, args)
