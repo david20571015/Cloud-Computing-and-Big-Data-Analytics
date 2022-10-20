@@ -29,9 +29,7 @@ def _decode_video(
     video = tf.image.resize_with_pad(video, height, width)
 
     if data_augment:
-        video = tf.image.random_hue(video, 0.2)
-        video = tf.image.random_saturation(video, 0.8, 1.2)
-        video = tf.image.random_brightness(video, 0.2)
+        video = tf.image.random_hue(video, 0.3)
 
     if timesteps is not None:
         video_timesetps = tf.shape(video)[0]
@@ -70,8 +68,8 @@ def _get_dataset(
         dataset = dataset.shuffle(len(video_data_list))
 
     dataset = dataset.map(
-        lambda x, y:
-        (_decode_video(x, timesteps, height, width, sample_rate, data_augment), y),
+        lambda x, y: (_decode_video(x, timesteps, height, width, sample_rate,
+                                    data_augment), y),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
     if timesteps is None:
