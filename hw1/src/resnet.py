@@ -46,8 +46,11 @@ class ResidualBlock(tf.keras.Model):
         for filters, kernel_size in kernels:
             layers.append(
                 tf.keras.layers.TimeDistributed(
-                    tf.keras.layers.Conv2D(filters, kernel_size,
-                                           padding='same')))
+                    tf.keras.layers.Conv2D(
+                        filters,
+                        kernel_size,
+                        padding='same',
+                        kernel_regularizer=tf.keras.regularizers.l2(0.0005))))
             layers.append(
                 tf.keras.layers.TimeDistributed(
                     tf.keras.layers.BatchNormalization()))
@@ -61,7 +64,7 @@ class ResidualBlock(tf.keras.Model):
                 filters=kernels[-1][0],
                 kernel_size=1,
                 padding='same',
-            ))
+                kernel_regularizer=tf.keras.regularizers.l2(0.0005)))
 
     def call(self, inputs, training=False, mask=None):
         conv_output = self.conv_layers(inputs, training=training)
@@ -94,18 +97,29 @@ class ResNet(tf.keras.Model):
         super().__init__()
 
         self.head = tf.keras.layers.TimeDistributed(
-            tf.keras.layers.Conv2D(64, 7, strides=2, padding='same'))
+            tf.keras.layers.Conv2D(
+                64,
+                7,
+                strides=2,
+                padding='same',
+                kernel_regularizer=tf.keras.regularizers.l2(0.0005)))
         self.conv_blocks = tf.keras.Sequential(
             [ConvBlock(kernels, repeat) for kernels, repeat in spec])
         self.pool = tf.keras.layers.TimeDistributed(
             tf.keras.layers.GlobalAveragePooling2D())
-        self.classifier = tf.keras.layers.Dense(output_features)
+        self.classifier = tf.keras.layers.Dense(
+            output_features,
+            kernel_regularizer=tf.keras.regularizers.l2(0.0005))
 
     def call(self, inputs, training=False, mask=None):
         outputs = self.head(inputs)
         outputs = self.conv_blocks(outputs, training=training)
         outputs = self.pool(outputs)
         return self.classifier(outputs)
+
+
+def resnet_backbone(name: str):
+    return ResNet(512, RESNET_SPEC[name])
 
 
 def create_lstm_resnet(
@@ -115,6 +129,10 @@ def create_lstm_resnet(
 ):
     inputs = tf.keras.Input(shape=input_shape)
     outputs = ResNet(128, RESNET_SPEC[name])(inputs)
-    outputs = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128))(outputs)
-    outputs = tf.keras.layers.Dense(num_classes)(outputs)
+    outputs = tf.keras.layers.Bidirectional(
+        tf.keras.layers.LSTM(
+            128, kernel_regularizer=tf.keras.regularizers.l2(0.0005)))(outputs)
+    outputs = tf.keras.layers.Dense(
+        num_classes,
+        kernel_regularizer=tf.keras.regularizers.l2(0.0005))(outputs)
     return tf.keras.Model(inputs=inputs, outputs=outputs)

@@ -1,5 +1,7 @@
 import tensorflow as tf
 
+from src.resnet import resnet_backbone
+
 
 def conv_block(filters: int, repeat: int):
     layers = []
@@ -10,7 +12,7 @@ def conv_block(filters: int, repeat: int):
                 3,
                 padding='same',
                 activation='relu',
-                kernel_regularizer=tf.keras.regularizers.l2(0.0001)))
+                kernel_regularizer=tf.keras.regularizers.l2(0.0005)))
         layers.append(
             tf.keras.layers.TimeDistributed(
                 tf.keras.layers.BatchNormalization()))
@@ -19,7 +21,7 @@ def conv_block(filters: int, repeat: int):
     return tf.keras.Sequential(layers)
 
 
-def vgg19_backend():
+def vgg19_backbone():
     return tf.keras.Sequential([
         conv_block(64, 2),
         conv_block(128, 2),
@@ -42,23 +44,19 @@ def create_model(input_shape: tuple, num_classes: int):
     outputs = tf.keras.layers.TimeDistributed(
         tf.keras.layers.RandomFlip('horizontal'))(inputs)
 
-    outputs = vgg19_backend()(outputs)
+    outputs = resnet_backbone('resnet18')(outputs)
     outputs = tf.keras.layers.TimeDistributed(
         tf.keras.layers.Flatten())(outputs)
     outputs = tf.keras.layers.Bidirectional(
         tf.keras.layers.LSTM(
-            256,
-            return_sequences=True,
-            kernel_regularizer=tf.keras.regularizers.l2(0.0001)))(outputs)
-    outputs = attention_block(outputs, input_shape[0])
-    outputs = tf.keras.layers.Flatten()(outputs)
+            64, kernel_regularizer=tf.keras.regularizers.l2(0.0005)))(outputs)
     outputs = tf.keras.layers.Dense(
-        512,
+        256,
         activation='relu',
-        kernel_regularizer=tf.keras.regularizers.l2(0.0001))(outputs)
+        kernel_regularizer=tf.keras.regularizers.l2(0.0005))(outputs)
     outputs = tf.keras.layers.Dropout(0.5)(outputs)
     outputs = tf.keras.layers.Dense(
         num_classes,
-        kernel_regularizer=tf.keras.regularizers.l2(0.0001))(outputs)
+        kernel_regularizer=tf.keras.regularizers.l2(0.0005))(outputs)
 
     return tf.keras.Model(inputs, outputs)
