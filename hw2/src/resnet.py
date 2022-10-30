@@ -239,7 +239,7 @@ class ResNet(nn.Module):
     def forward(self, x: torch.Tensor):
         x = self.stem(x)
         x = self.blocks(x)
-        # x = self.head(x)
+        x = self.head(x)
         return x
 
 
