@@ -15,6 +15,7 @@ class Stem(nn.Module):
                 kernel_size=(7, 7),
                 stride=(1, 1),
                 padding='same',
+                bias=False,
             ),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
@@ -45,6 +46,7 @@ class BasicBlock(nn.Module):
                 inner_channels,
                 kernel_size=(3, 3),
                 padding='same',
+                bias=False,
             ),
             nn.BatchNorm2d(inner_channels),
             nn.ReLU(inplace=True),
@@ -53,6 +55,7 @@ class BasicBlock(nn.Module):
                 out_channels,
                 kernel_size=(3, 3),
                 padding='same',
+                bias=False,
             ),
             nn.BatchNorm2d(out_channels),
         )
@@ -63,6 +66,7 @@ class BasicBlock(nn.Module):
                     in_channels,
                     out_channels,
                     kernel_size=(1, 1),
+                    bias=False,
                 ),
                 nn.BatchNorm2d(out_channels),
             )
@@ -88,6 +92,7 @@ class BottleNeckBlock(nn.Module):
                 in_channels,
                 inner_channels,
                 kernel_size=(1, 1),
+                bias=False,
             ),
             nn.BatchNorm2d(inner_channels),
             nn.ReLU(inplace=True),
@@ -96,6 +101,7 @@ class BottleNeckBlock(nn.Module):
                 inner_channels,
                 kernel_size=(3, 3),
                 padding='same',
+                bias=False,
             ),
             nn.BatchNorm2d(inner_channels),
             nn.ReLU(inplace=True),
@@ -103,6 +109,7 @@ class BottleNeckBlock(nn.Module):
                 inner_channels,
                 out_channels,
                 kernel_size=(1, 1),
+                bias=False,
             ),
             nn.BatchNorm2d(out_channels),
         )
@@ -113,6 +120,7 @@ class BottleNeckBlock(nn.Module):
                     in_channels,
                     out_channels,
                     kernel_size=(1, 1),
+                    bias=False,
                 ),
                 nn.BatchNorm2d(out_channels),
             )
