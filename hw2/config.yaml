@@ -1,0 +1,16 @@
+train:
+  batch_size: 64
+  update_batch_size: 1024
+  epochs: 10
+  save_freq: 5
+
+  lr: !!float 1e-4
+  weight_decay: !!float 1e-6
+
+model:
+  encoder:
+    # One of ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152']
+    name: resnet18
+    latent_dim: 512
+  projector:
+    dims: [256, 128]
