@@ -206,7 +206,7 @@ class ResNet(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.stem = Stem(in_channels=3, out_channels=64)
+        self.stem = Stem(in_channels=1, out_channels=64)
 
         out_channels = in_channels if block_type == BasicBlock else [
             ch * 4 for ch in in_channels
