@@ -1,5 +1,38 @@
 import torch
 import torch.nn.functional as F
+from src.resnet import ResNet18, ResNet34, ResNet50, ResNet101, ResNet152
+
+
+def create_encoder(model_config):
+    model_name = model_config['encoder']['name']
+    latent_dim = model_config['encoder']['latent_dim']
+
+    model_dict = {
+        'resnet18': ResNet18,
+        'resnet34': ResNet34,
+        'resnet50': ResNet50,
+        'resnet101': ResNet101,
+        'resnet152': ResNet152,
+    }
+
+    if model_name not in model_dict:
+        raise ValueError(f'Invalid model name: {model_name}')
+
+    encoder: torch.nn.Module = model_dict[model_name](num_classes=latent_dim)
+    return encoder
+
+
+def creaete_projector(model_config):
+    input_dim = model_config['encoder']['latent_dim']
+    layer_dims = [input_dim] + model_config['projector']['dims']
+
+    layers = []
+    for in_dim, out_dim in zip(layer_dims[:-1], layer_dims[1:]):
+        layers.append(torch.nn.ReLU(inplace=True))
+        layers.append(torch.nn.Linear(in_dim, out_dim))
+
+    projector = torch.nn.Sequential(*layers)
+    return projector
 
 
 def nt_xent(
