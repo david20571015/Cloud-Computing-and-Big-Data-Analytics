@@ -15,14 +15,21 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-l',
-        '--log-name',
+        '--logdir',
         type=str,
         required=True,
-        help='log dir name',
+        help='log dir path, e.g. ./logs/2022-01-01_00-00-00',
+    )
+    parser.add_argument(
+        '-w',
+        '--weight',
+        type=str,
+        default='latest',
+        help='file name of model weight, e.g. ckpt_100 (default: latest)',
     )
     args = parser.parse_args()
 
-    with open(Path(args.log_name) / 'config.yaml', encoding='utf-8') as f:
+    with open(Path(args.logdir) / 'config.yaml', encoding='utf-8') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
     dataset = EmbeddingDataset('data/unlabeled')
@@ -33,7 +40,8 @@ def main():
                             pin_memory=True)
 
     encoder = create_encoder(config['model']).cuda()
-    checkpoint = torch.load(Path(args.log_name) / 'weights' / 'latest.pth')
+    checkpoint = torch.load(
+        Path(args.logdir) / 'weights' / f'{args.weight}.pth')
     encoder.load_state_dict(checkpoint['encoder'])
     encoder.eval()
 

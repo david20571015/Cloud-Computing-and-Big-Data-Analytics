@@ -112,21 +112,21 @@ def main():
         '--config',
         type=str,
         default='./config.yaml',
-        help='config file path',
+        help='config file path (default: ./config.yaml)',
     )
     parser.add_argument(
         '-l',
-        '--log-name',
+        '--logdir',
         type=str,
         default=datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
-        help='log dir name',
+        help='log dir name (default: current time)',
     )
     args = parser.parse_args()
 
     with open(args.config, encoding='utf-8') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
-    logger = Logger(args.log_name, config_file=args.config)
+    logger = Logger(args.logdir, config_file=args.config)
 
     batch_size = config['train']['batch_size']
     accu_steps = config['train']['update_batch_size'] // batch_size
