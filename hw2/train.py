@@ -61,7 +61,7 @@ def train_step(
         n_iters = 0
 
         for image, trans_image, _ in pbar:
-            image, trans_image = image.cuda(), trans_image.cuda()
+            image, trans_image = image.to(DEVICE), trans_image.to(DEVICE)
             u = model(image)
             v = model(trans_image)
 
@@ -94,7 +94,7 @@ def valid_step(model, dataloader):
         embedding = []
         classes = []
         for image, cls in dataloader:
-            image = image.cuda()
+            image = image.to(DEVICE)
             embedding.append(model(image))
             classes.append(cls)
         embedding = torch.cat(embedding, dim=0)
@@ -135,7 +135,7 @@ def main():
 
     encoder = create_encoder(config['model'])
     projector = creaete_projector(config['model'])
-    model = nn.Sequential(encoder, projector).cuda()
+    model = nn.Sequential(encoder, projector).to(DEVICE)
 
     optimizer = torch.optim.Adam(model.parameters(),
                                  lr=config['train']['lr'],
@@ -174,5 +174,6 @@ def main():
 
 
 if __name__ == '__main__':
+    DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     torch.backends.cudnn.benchmark = True  # type: ignore
     main()

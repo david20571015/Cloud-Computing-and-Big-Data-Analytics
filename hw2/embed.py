@@ -39,24 +39,25 @@ def main():
                             num_workers=torch.get_num_threads(),
                             pin_memory=True)
 
-    encoder = create_encoder(config['model']).cuda()
+    encoder = create_encoder(config['model']).to(DEVICE)
     checkpoint = torch.load(
         Path(args.logdir) / 'weights' / f'{args.weight}.pth')
     encoder.load_state_dict(checkpoint['encoder'])
     encoder.eval()
 
-    embeddings = torch.zeros(len(dataset), 512)
+    embeddings = torch.zeros(len(dataset), 512, device=DEVICE)
 
     with torch.no_grad():
         for images, label in tqdm(dataloader):
-            images = images.cuda()
+            images = images.to(DEVICE)
             features = encoder(images)
 
-            embeddings[label.long()] = features.cpu()
+            embeddings[label.long()] = features
 
-    np.save('embeddings.npy', embeddings.numpy())
+    np.save('embeddings.npy', embeddings.to('cpu').numpy())
 
 
 if __name__ == '__main__':
+    DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     torch.backends.cudnn.benchmark = True  # type: ignore
     main()
