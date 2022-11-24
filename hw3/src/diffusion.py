@@ -86,7 +86,7 @@ class DiffusionSampler(nn.Module):
                                     self.time_steps - 1,
                                     n_rows,
                                     dtype=torch.long,
-                                    device=x_T.device)[1:]
+                                    device=x_T.device)[:-1:-1]
         save_images = [torch.zeros_like(x_T)]
         x_t = x_T
 
