@@ -1,0 +1,13 @@
+train:
+  epochs: 100
+  save_freq: 10
+  batch_size: 128
+  lr: !!float 1e-4
+  ema_decay: !!float 0.9
+
+model:
+  time_steps: 1000
+  channels: 64
+  ch_mults: [1, 2, 2, 2]
+  attn_res: [16, 8, 4]
+  num_res_blocks: 2
