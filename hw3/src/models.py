@@ -227,11 +227,12 @@ class UNet(nn.Module):
 
 
 if __name__ == '__main__':
-    bs = 8
-    T = 100
-    x = torch.randn(bs, 3, 28, 28)
-    t = torch.arange(bs)
+    inputs = torch.randn(1, 3, 28, 28)
+    times = torch.arange(1)
 
-    model = UNet(time_steps=T, channels=128, num_res_blocks=4)
-    y = model(x, t)
-    print(y.shape)  # torch.Size([8, 3, 28, 28])
+    model = UNet(input_shape=(3, 28, 28),
+                 time_steps=10,
+                 channels=32,
+                 num_res_blocks=4)
+
+    print(model(inputs, times).shape)  # torch.Size([1, 3, 28, 28])
