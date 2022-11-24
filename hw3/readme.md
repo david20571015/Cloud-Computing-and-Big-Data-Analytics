@@ -26,6 +26,7 @@
     │   ├── models.py
     │   └── utils.py
     ├── config.yaml
+    ├── mnist.npz
     ├── readme.md
     ├── sample.py
     └── train.py
@@ -43,6 +44,8 @@ conda activate hw3
 
 conda install pytorch torchvision pytorch-cuda=11.6 -c pytorch -c nvidia --yes
 conda install tqdm tensorboard pyyaml -c conda-forge --yes
+
+pip3 install pytorch_gan_metrics
 ```
 
 ### Activate Environment
@@ -90,3 +93,11 @@ python3 sample.py [-h] -l LOGDIR [-w WEIGHT]
 - `-h` or `--help` : show this help message and exit
 - `-l LOGDIR` or `--logdir LOGDIR` : log dir path, e.g. ./logs/2022-01-01_00-00-00
 - `-w WEIGHT` or `--weight WEIGHT` : file name of model weight, e.g. ckpt_100 (default: latest)
+
+## FID
+
+```sh
+python3 -m pytorch_gan_metrics.calc_metrics \
+       --path ./images \
+       --stats ./mnist.npz
+```
