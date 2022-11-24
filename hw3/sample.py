@@ -3,6 +3,7 @@ from pathlib import Path
 
 import torch
 from torch.utils.data import DataLoader
+from torchvision.transforms.functional import resize
 from torchvision.utils import save_image
 from tqdm import tqdm
 import yaml
@@ -36,15 +37,15 @@ def main():
     Path('images').mkdir(exist_ok=True)
 
     # prepare dataset
-    input_shape = (3, 28, 28)
+    input_shape = (3, 32, 32)
     dataset = GaussianNoiseDataset(input_shape, 10000)
     dataloader = DataLoader(dataset,
-                            batch_size=128,
+                            batch_size=512,
                             num_workers=torch.get_num_threads(),
                             pin_memory=True)
 
     # prepare model
-    model = UNet(input_shape=input_shape, **config['model'])
+    model = UNet(input_shape=input_shape, **config['model']).to(DEVICE)
     checkpoint = torch.load(
         Path(args.logdir) / 'weights' / f'{args.weight}.pth')
     model.load_state_dict(checkpoint['ema_model'])
@@ -55,11 +56,12 @@ def main():
 
     image_id = 1
     with torch.no_grad():
-        assert sampler(dataset[0][None, ...].to(DEVICE)).shape == (1, 3, 28, 28)
+        assert sampler(dataset[0][None, ...].to(DEVICE)).shape == (1, 3, 32, 32)
 
         for x_T in tqdm(dataloader, dynamic_ncols=True):
             x_T = x_T.to(DEVICE)
             x_0 = sampler(x_T)
+            x_0 = resize(x_0, [28, 28])
 
             for image in x_0:
                 save_image(image, Path('images') / f'{image_id:05d}.png')
