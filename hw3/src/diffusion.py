@@ -75,9 +75,9 @@ class DiffusionSampler(nn.Module):
         x_t = x_T
 
         # In order to match the index of time embedding, set time from T-1 to 0.
-        for times in reversed(torch.arange(self.time_steps, device=x_T.device)):
-            z = torch.randn_like(x_t) if times > 0 else 0
-            x_t = self.predict_mean(x_t, times) + self.sigma[times] * z
+        for t in reversed(torch.arange(self.time_steps, device=x_T.device)):
+            z = torch.randn_like(x_t) if t > 0 else 0
+            x_t = self.predict_mean(x_t, t) + self.sigma[t] * z
         return x_t.clip(-1.0, 1.0)
 
     @torch.no_grad()
@@ -86,15 +86,15 @@ class DiffusionSampler(nn.Module):
                                     self.time_steps - 1,
                                     n_rows,
                                     dtype=torch.long,
-                                    device=x_T.device)[:-1] # exclude T-1
+                                    device=x_T.device)[:-1]  # exclude T-1
         save_images = [torch.zeros_like(x_T)]
         x_t = x_T
 
         # In order to match the index of time embedding, set time from T-1 to 0.
-        for times in reversed(torch.arange(self.time_steps, device=x_T.device)):
-            z = torch.randn_like(x_t) if times > 0 else 0
-            x_t = self.predict_mean(x_t, times) + self.sigma[times] * z
-            if times in save_index:
+        for t in reversed(torch.arange(self.time_steps, device=x_T.device)):
+            z = torch.randn_like(x_t) if t > 0 else 0
+            x_t = self.predict_mean(x_t, t) + self.sigma[t] * z
+            if t in save_index:
                 save_images.append(x_t.clip(-1., 1.))
         return torch.cat(save_images, dim=0)
 
