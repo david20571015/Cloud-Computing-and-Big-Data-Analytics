@@ -98,6 +98,6 @@ python3 sample.py [-h] -l LOGDIR [-w WEIGHT]
 
 ```sh
 python3 -m pytorch_gan_metrics.calc_metrics \
-       --path ./images \
+       --path ./logs/{LOGDIR}/images \
        --stats ./mnist.npz
 ```
