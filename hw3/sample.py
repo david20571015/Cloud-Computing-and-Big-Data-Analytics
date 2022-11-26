@@ -34,7 +34,8 @@ def main():
     with open(Path(args.logdir) / 'config.yaml', encoding='utf-8') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
-    Path('images').mkdir(exist_ok=True)
+    save_dir = Path(args.logdir) / 'images'
+    save_dir.mkdir(exist_ok=True)
 
     # prepare dataset
     input_shape = (3, 32, 32)
@@ -64,7 +65,7 @@ def main():
             x_0 = resize(x_0, [28, 28])
 
             for image in x_0:
-                save_image(image, Path('images') / f'{image_id:05d}.png')
+                save_image(image, save_dir / f'{image_id:05d}.png')
                 image_id += 1
 
 
