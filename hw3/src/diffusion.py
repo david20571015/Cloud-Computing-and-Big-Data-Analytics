@@ -83,7 +83,7 @@ class DiffusionSampler(nn.Module):
     @torch.no_grad()
     def grid_sample(self, x_T: torch.Tensor, n_rows=8) -> torch.Tensor:
         save_index = torch.linspace(0,
-                                    self.time_steps - 1,
+                                    self.time_steps,
                                     n_rows,
                                     dtype=torch.long,
                                     device=x_T.device)[:-1]  # exclude T-1
