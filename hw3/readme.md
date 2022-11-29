@@ -60,9 +60,9 @@ conda activate hw3
 python3 train.py [-h] [-c CONFIG] [-l LOGDIR]
 ```
 
-- `-h` or `--help` : show this help message and exit
-- `-c CONFIG` or `--config CONFIG` : config file path (default: `./config.yaml`)
-- `-l LOGDIR` or `--logdir LOGDIR` : log dir name (default: current time)
+- `-h`, `--help`: show this help message and exit
+- `-c CONFIG`, `--config CONFIG`: config file path (default: `./config.yaml`)
+- `-l LOGDIR`, `--logdir LOGDIR`: log dir name (default: current time)
 
 ### Config
 
@@ -90,13 +90,13 @@ model:
 python3 sample.py [-h] -l LOGDIR [-w WEIGHT] [-n NUM_SAMPLES] [--ddim] [-s STEP] [--eta ETA]
 ```
 
-- `-h` or `--help` : show this help message and exit
-- `-l LOGDIR` or `--logdir LOGDIR` : log dir path, e.g. ./logs/2022-01-01_00-00-00
-- `-w WEIGHT` or `--weight WEIGHT` : file name of model weight, e.g. ckpt_100 (default: latest)
-- `-n NUM_SAMPLES` or `--num_samples NUM_SAMPLES` : number of samples (default: 10000)
-- `--ddim` : use ddim sampler
-- `-s STEP` or `--step STEP` : number of ddim sampling steps, affect if `--ddim` is set (default: 10)
-- `--eta ETA` : linearity between ddim sampling and ddpm sampling, 0.0 for pure ddim sampliing, 1.0 for pure ddpm sampling, affect if `--ddim` is set (default: 0.0)
+- `-h`, `--help`: show this help message and exit
+- `-l LOGDIR`, `--logdir LOGDIR`: log dir path, e.g. ./logs/2022-01-01_00-00-00
+- `-w WEIGHT`, `--weight WEIGHT`: file name of model weight, e.g. ckpt_100 (default: latest)
+- `-n NUM_SAMPLES`, `--num_samples NUM_SAMPLES`: number of samples (default: 10000)
+- `--ddim`: use ddim sampler
+- `-s STEP`, `--step STEP`: number of ddim sampling steps, affect if `--ddim` is set (default: 10)
+- `--eta ETA`: linearity between ddim sampling and ddpm sampling, 0.0 for pure ddim sampliing, 1.0 for pure ddpm sampling, affect if `--ddim` is set (default: 0.0)
 
 ## FID
 
