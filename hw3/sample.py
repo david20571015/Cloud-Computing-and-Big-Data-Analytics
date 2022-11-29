@@ -9,6 +9,7 @@ from tqdm import tqdm
 import yaml
 
 from src.dataset import GaussianNoiseDataset
+from src.diffusion import DdimSampler
 from src.diffusion import DiffusionSampler
 from src.models import UNet
 
@@ -36,13 +37,34 @@ def main():
         default=10000,
         help='number of samples (default: 10000)',
     )
-
+    parser.add_argument(
+        '--ddim',
+        action='store_true',
+        help='use ddim sampler',
+    )
+    parser.add_argument(
+        '-s',
+        '--step',
+        type=int,
+        default=10,
+        help=('number of ddim sampling steps, affect if `--ddim` is set '
+              '(default: 10)'),
+    )
+    parser.add_argument(
+        '--eta',
+        type=float,
+        default=0.0,
+        help=('linearity between ddim sampling and ddpm sampling, 0.0 for pure '
+              'ddim sampliing, 1.0 for pure ddpm sampling, affect if `--ddim` '
+              'is set (default: 0.0)'),
+    )
     args = parser.parse_args()
 
     with open(Path(args.logdir) / 'config.yaml', encoding='utf-8') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
-    save_dir = Path(args.logdir) / 'images'
+    save_dir = Path(args.logdir) / (f'images_ddim_{args.eta}_step_{args.step}'
+                                    if args.ddim else 'images')
     save_dir.mkdir(exist_ok=True)
 
     # prepare dataset
@@ -59,8 +81,13 @@ def main():
         Path(args.logdir) / 'weights' / f'{args.weight}.pth')
     model.load_state_dict(checkpoint['ema_model'])
 
-    sampler = DiffusionSampler(
-        model, time_steps=config['model']['time_steps']).to(DEVICE)
+    if args.ddim:
+        sampler = DdimSampler(model,
+                              time_steps=config['model']['time_steps'],
+                              sample_steps=args.step).to(DEVICE)
+    else:
+        sampler = DiffusionSampler(
+            model, time_steps=config['model']['time_steps']).to(DEVICE)
     sampler.eval()
 
     image_id = 1
@@ -69,7 +96,11 @@ def main():
 
         for x_T in tqdm(dataloader, dynamic_ncols=True):
             x_T = x_T.to(DEVICE)
-            x_0 = sampler(x_T)
+
+            if args.ddim:
+                x_0 = sampler(x_T, eta=args.eta)
+            else:
+                x_0 = sampler(x_T)
             x_0 = resize(x_0, [28, 28])
 
             for image in x_0:
