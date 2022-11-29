@@ -1,3 +1,5 @@
+from typing import Literal
+
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -100,6 +102,79 @@ class DiffusionSampler(nn.Module):
         return torch.cat(save_images, dim=0)
 
 
+class DdimSampler(nn.Module):
+
+    def __init__(
+        self,
+        model: nn.Module,
+        time_steps=1000,
+        sample_steps=50,
+        step_type: Literal['linear', 'quadratic'] = 'linear',
+        beta_1=1e-4,
+        beta_T=2e-2,
+    ) -> None:
+        super().__init__()
+        self.model = model
+        self.sample_steps = sample_steps
+
+        if step_type == 'linear':
+            tau = torch.linspace(0,
+                                 time_steps - 1,
+                                 sample_steps,
+                                 dtype=torch.long)
+        elif step_type == 'quadratic':
+            tau = torch.arange(sample_steps)**2 * \
+                    ((time_steps - 1) / (sample_steps - 1)**2)
+            tau = tau.floor().long()
+        else:
+            raise KeyError(
+                f'step_type should be "linear" or "quadratic", but got {step_type}'
+            )
+
+        self.register_buffer('tau', tau)
+
+        beta = torch.linspace(beta_1, beta_T, time_steps,
+                              dtype=torch.float32).view(-1, 1, 1, 1)
+        alpha = 1.0 - beta
+        alpha_bar = torch.cumprod(alpha, dim=0)
+
+        self.register_buffer('alpha_bar', alpha_bar[tau])
+
+        # Compute sigma[1:] first because alpha_bar_0 is specified as 1.
+        sigma = torch.sqrt((1 - alpha_bar[tau][:-1]) / (1 - alpha_bar[tau][1:]))
+        sigma = sigma * torch.sqrt(1 - alpha[tau][1:])
+        sigma = torch.cat([torch.zeros_like(sigma[0])[None, :], sigma], dim=0)
+
+        self.register_buffer('sigma', sigma)
+
+    def forward(self, x_T: torch.Tensor, eta=0.0) -> torch.Tensor:
+        x_t = x_T
+        sigma = self.get_buffer('sigma') * eta
+
+        for t in reversed(
+                torch.arange(self.sample_steps, device=x_T.device)[1:]):
+            pred_noise = self.model(x_t, self.get_buffer('tau')[t])
+
+            pred_x_0 = x_t - torch.sqrt(
+                1 - self.get_buffer('alpha_bar')[t]) * pred_noise
+            pred_x_0 = pred_x_0 / torch.sqrt(self.get_buffer('alpha_bar')[t])
+
+            dir_x_t = torch.sqrt(1 - self.get_buffer('alpha_bar')[t - 1] -
+                                 sigma[t]**2) * pred_noise
+
+            random_noise = sigma[t] * torch.randn_like(x_t)
+
+            x_t = pred_x_0 * self.get_buffer('alpha_bar')[
+                t - 1].sqrt() + dir_x_t + random_noise
+
+        pred_noise = self.model(x_t, torch.tensor(0, device=x_T.device))
+        pred_x_0 = x_t - torch.sqrt(
+            1 - self.get_buffer('alpha_bar')[0]) * pred_noise
+        x_0 = pred_x_0 / torch.sqrt(self.get_buffer('alpha_bar')[0])
+
+        return x_0.clip(-1.0, 1.0)
+
+
 if __name__ == '__main__':
     DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     input_shape = (3, 32, 32)
@@ -111,4 +186,7 @@ if __name__ == '__main__':
     print(trainer(torch.randn(8, *input_shape, device=DEVICE)))
 
     sampler = DiffusionSampler(backbone, time_steps=10).to(DEVICE)
+    print(sampler(torch.randn(8, *input_shape, device=DEVICE)).shape)
+
+    sampler = DdimSampler(backbone, time_steps=1000).to(DEVICE)
     print(sampler(torch.randn(8, *input_shape, device=DEVICE)).shape)
