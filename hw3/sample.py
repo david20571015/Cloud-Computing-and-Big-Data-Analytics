@@ -29,6 +29,14 @@ def main():
         default='latest',
         help='file name of model weight, e.g. ckpt_100 (default: latest)',
     )
+    parser.add_argument(
+        '-n',
+        '--num_samples',
+        type=int,
+        default=10000,
+        help='number of samples (default: 10000)',
+    )
+
     args = parser.parse_args()
 
     with open(Path(args.logdir) / 'config.yaml', encoding='utf-8') as f:
@@ -39,7 +47,7 @@ def main():
 
     # prepare dataset
     input_shape = (3, 32, 32)
-    dataset = GaussianNoiseDataset(input_shape, 10000)
+    dataset = GaussianNoiseDataset(input_shape, args.num_samples)
     dataloader = DataLoader(dataset,
                             batch_size=512,
                             num_workers=torch.get_num_threads(),
