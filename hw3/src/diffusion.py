@@ -33,8 +33,8 @@ class DiffusionTrainer(nn.Module):
                               device=x_0.device)
         noise = torch.randn_like(x_0)
 
-        x_t = (self.sqrt_alpha_bar[times] * x_0 +
-               self.sqrt_one_minus_alpha_bar[times] * noise)
+        x_t = (self.get_buffer('sqrt_alpha_bar')[times] * x_0 +
+               self.get_buffer('sqrt_one_minus_alpha_bar')[times] * noise)
 
         pred_noise = self.model(x_t, times)
         loss = F.mse_loss(pred_noise, noise)
@@ -67,8 +67,9 @@ class DiffusionSampler(nn.Module):
 
     def predict_mean(self, x_t, t) -> torch.Tensor:
         pred_noise = self.model(x_t, t)
-        x_t = x_t - self.beta[t] / self.sqrt_one_minus_alpha_bar[t] * pred_noise
-        x_t = x_t / self.sqrt_alpha[t]
+        x_t = x_t - self.get_buffer('beta')[t] / self.get_buffer(
+            'sqrt_one_minus_alpha_bar')[t] * pred_noise
+        x_t = x_t / self.get_buffer('sqrt_alpha')[t]
         return x_t
 
     def forward(self, x_T: torch.Tensor) -> torch.Tensor:
@@ -77,7 +78,7 @@ class DiffusionSampler(nn.Module):
         # In order to match the index of time embedding, set time from T-1 to 0.
         for t in reversed(torch.arange(self.time_steps, device=x_T.device)):
             z = torch.randn_like(x_t) if t > 0 else 0
-            x_t = self.predict_mean(x_t, t) + self.sigma[t] * z
+            x_t = self.predict_mean(x_t, t) + self.get_buffer('sigma')[t] * z
         return x_t.clip(-1.0, 1.0)
 
     @torch.no_grad()
@@ -93,7 +94,7 @@ class DiffusionSampler(nn.Module):
         # In order to match the index of time embedding, set time from T-1 to 0.
         for t in reversed(torch.arange(self.time_steps, device=x_T.device)):
             z = torch.randn_like(x_t) if t > 0 else 0
-            x_t = self.predict_mean(x_t, t) + self.sigma[t] * z
+            x_t = self.predict_mean(x_t, t) + self.get_buffer('sigma')[t] * z
             if t in save_index:
                 save_images.append(x_t.clip(-1., 1.))
         return torch.cat(save_images, dim=0)
