@@ -1,4 +1,4 @@
-# CCBDA HW2
+# Denoising Diffusion Probabilistic Models
 
 ## Dataset
 
