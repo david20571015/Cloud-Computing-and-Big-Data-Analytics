@@ -1,4 +1,4 @@
-# CCBDA HW2
+# Contrastive Learning
 
 ## Dataset
 
