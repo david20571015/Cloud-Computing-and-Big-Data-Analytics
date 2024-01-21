@@ -1,4 +1,4 @@
-# CCBDA-HW1
+# Video Classification
 
 ## Dataset
 
